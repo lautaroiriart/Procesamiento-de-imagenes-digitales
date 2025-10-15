@@ -1,0 +1,11 @@
+numpy
+opencv-python
+scikit-image
+pillow
+fastapi
+uvicorn
+pydantic
+matplotlib
+pytest
+black
+ruff
