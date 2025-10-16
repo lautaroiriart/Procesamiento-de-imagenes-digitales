@@ -1,11 +1,7 @@
+
+Django>=5.0
 numpy
 opencv-python
-scikit-image
 pillow
-fastapi
-uvicorn
-pydantic
+scikit-image
 matplotlib
-pytest
-black
-ruff

@@ -1,8 +1,7 @@
-import cv2
-import numpy as np
+
+import cv2, numpy as np
 
 def find_plate_bbox(img: np.ndarray):
-    """Canny + morfo + contornos + heurística de ratio."""
     gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     gray = cv2.bilateralFilter(gray, 9, 75, 75)
     edges = cv2.Canny(gray, 80, 200)

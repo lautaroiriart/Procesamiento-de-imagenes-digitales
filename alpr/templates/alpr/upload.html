@@ -1,0 +1,58 @@
+
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>ALPR MERCOSUR – Demo</title>
+<style>
+*{box-sizing:border-box} body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,sans-serif;margin:0;background:#0f172a;color:#e2e8f0}
+.container{max-width:900px;margin:40px auto;padding:24px;background:#111827;border:1px solid #1f2937;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+h1{margin:0 0 12px;font-size:28px}
+p.muted{color:#94a3b8;margin:0 0 20px}
+.card{display:flex;gap:16px;align-items:center;background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:16px;margin-bottom:16px}
+input[type=file]{padding:10px;background:#0f172a;border:1px dashed #334155;border-radius:8px;color:#e2e8f0;width:100%}
+button{padding:10px 16px;border:none;border-radius:10px;background:#22c55e;color:#0b1220;font-weight:700;cursor:pointer}
+button:hover{filter:brightness(1.1)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+pre{white-space:pre-wrap;background:#0b1220;border:1px solid #1f2937;padding:12px;border-radius:10px;max-height:400px;overflow:auto}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#1d4ed8;color:#e2e8f0;font-size:12px;margin-left:8px}
+hr{border:none;border-top:1px solid #1f2937;margin:20px 0}
+.preview{background:#0b1220;border:1px solid #1f2937;border-radius:12px;padding:10px;display:flex;justify-content:center;align-items:center;height:260px}
+.preview img{max-height:240px;max-width:100%;object-fit:contain;border-radius:8px}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>ALPR MERCOSUR – Demo <span class="badge">TFI 2025</span></h1>
+  <p class="muted">Subí una imagen de un vehículo. El sistema detecta la patente, segmenta los caracteres y ejecuta un OCR (CNN entrenada desde cero).</p>
+  <form class="card" method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input id="file" type="file" name="image" accept="image/*" onchange="preview(event)"/>
+    <button type="submit">Procesar</button>
+  </form>
+  <div class="grid">
+    <div>
+      <h3>Resultado</h3>
+      <pre id="out">{% if result %}{{ result|safe }}{% endif %}</pre>
+    </div>
+    <div>
+      <h3>Vista previa</h3>
+      <div class="preview"><img id="img" alt="preview"/></div>
+    </div>
+  </div>
+  <hr/>
+  <p class="muted">Tip: también podés usar fetch AJAX y mostrar overlays de bbox. Este template es mínimo para la demo.</p>
+</div>
+<script>
+function preview(e){
+  const img=document.getElementById('img');
+  const file=e.target.files[0];
+  if(!file){ img.src=''; return; }
+  const reader=new FileReader();
+  reader.onload=ev=>{ img.src=ev.target.result; };
+  reader.readAsDataURL(file);
+}
+</script>
+</body>
+</html>
