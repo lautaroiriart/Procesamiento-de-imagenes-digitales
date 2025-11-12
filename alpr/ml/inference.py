@@ -27,3 +27,14 @@ def infer(img_bytes: bytes):
     text = fix_confusions("".join(preds)) if preds else None
     return {"plate_text": text, "per_char_conf": confs or None,
             "bbox": list(map(int, bbox)) if bbox else None}
+
+# al comienzo del archivo
+from pathlib import Path, PurePath
+DEBUG_DIR = Path("media/debug"); DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+
+# dentro de infer(), después de warp_plate:
+from PIL import Image
+Image.fromarray(plate).save(DEBUG_DIR / "plate_rectified.png")
+
+# dentro de split_characters (al final), guardá el BW:
+cv2.imwrite(str(DEBUG_DIR / "plate_bw.png"), bw)
