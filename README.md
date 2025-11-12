@@ -229,5 +229,5 @@ python manage.py runserver
 # 4) Entrenar OCR (sintético)
 python manage.py train_ocr --epochs 5 --train-samples 8000 --val-samples 1000
 
-# 5) Preparar dataset real de caracteres (cuando tengas placas)
+# 5) Preparar dataset real de caracteres 
 python scripts/prepare_chars.py --plates-dir data/interim/plates --out-dir data/processed/chars --labels-csv data/interim/plates.csv --visual-check
