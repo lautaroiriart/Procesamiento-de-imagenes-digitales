@@ -1,40 +1,75 @@
+# alpr/ml/inference.py
+from pathlib import Path
 
-import io, numpy as np
-from PIL import Image
-from .detect import find_plate_bbox
-from .rectify import warp_plate
-from .segment import split_characters
-from .ocr_model import load_model, predict_chars
-from .postprocess import fix_confusions
+import cv2
+import numpy as np
+from django.conf import settings
+from tensorflow.keras.models import load_model
 
-_model = None
-def _as_rgb(img_bytes: bytes) -> np.ndarray:
-    return np.array(Image.open(io.BytesIO(img_bytes)).convert("RGB"))
+from .encoding import decode_indices, MAX_LEN, ALPHABET
+from .dataset import IMG_HEIGHT, IMG_WIDTH
+
+_model_cache = None
+
 
 def get_model():
-    global _model
-    if _model is None:
-        _model = load_model()
-    return _model
+    """
+    Carga el modelo desde models/plate_ocr_model.h5 (una sola vez).
+    """
+    global _model_cache
+    if _model_cache is None:
+        model_path = Path(settings.BASE_DIR) / "models" / "plate_ocr_model.h5"
+        if not model_path.exists():
+            raise FileNotFoundError(
+                f"No se encontró el modelo entrenado en {model_path}. "
+                f"Ejecutá primero: python manage.py train_ocr"
+            )
+        _model_cache = load_model(model_path)
+    return _model_cache
 
-def infer(img_bytes: bytes):
-    img = _as_rgb(img_bytes)
-    bbox = find_plate_bbox(img)
-    plate = warp_plate(img, bbox) if bbox is not None else img
-    chars = split_characters(plate)
+
+def preprocess_image(image_path, brightness=0, contrast=0):
+    """
+    Lee la imagen, aplica brillo/contraste, redimensiona y normaliza.
+    brightness: -100..100 (aprox)
+    contrast:   -100..100 (aprox)
+    """
+    img = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+    if img is None:
+        return None
+
+    # contraste y brillo básicos
+    alpha = 1.0 + (contrast / 100.0)  # factor de contraste
+    beta = brightness                 # brillo
+    img = cv2.convertScaleAbs(img, alpha=alpha, beta=beta)
+
+    img = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
+    img = img.astype("float32") / 255.0
+    img = np.expand_dims(img, axis=(0, -1))  # (1, H, W, 1)
+    return img
+
+
+def run_ocr(image_path, brightness=0, contrast=0):
+    """
+    Ejecuta el OCR de tu modelo:
+    - devuelve plate_text SIN espacios
+    - confidence: promedio de las confianzas por carácter (0–1)
+    """
     model = get_model()
-    preds, confs = predict_chars(model, chars)
-    text = fix_confusions("".join(preds)) if preds else None
-    return {"plate_text": text, "per_char_conf": confs or None,
-            "bbox": list(map(int, bbox)) if bbox else None}
+    x = preprocess_image(image_path, brightness=brightness, contrast=contrast)
+    if x is None:
+        return {"plate_text": None, "confidence": None}
 
-# al comienzo del archivo
-from pathlib import Path, PurePath
-DEBUG_DIR = Path("media/debug"); DEBUG_DIR.mkdir(parents=True, exist_ok=True)
+    preds = model.predict(x)  # lista de MAX_LEN arrays (1, num_classes)
+    preds = [p[0] for p in preds]  # sacamos dimensión de batch
 
-# dentro de infer(), después de warp_plate:
-from PIL import Image
-Image.fromarray(plate).save(DEBUG_DIR / "plate_rectified.png")
+    indices = [int(np.argmax(p)) for p in preds]
+    confidences = [float(np.max(p)) for p in preds]
 
-# dentro de split_characters (al final), guardá el BW:
-cv2.imwrite(str(DEBUG_DIR / "plate_bw.png"), bw)
+    plate_text = decode_indices(indices)
+    confidence = float(np.mean(confidences)) if confidences else None
+
+    return {
+        "plate_text": plate_text,
+        "confidence": confidence,
+    }

@@ -1,8 +1,10 @@
+# alpr/api_urls.py
 from django.urls import path
-from .api_views import InferAPIView, HealthAPIView # , TrainAPIView
+from . import api_views
+
+app_name = "alpr_api"
 
 urlpatterns = [
-    path("infer/",  InferAPIView.as_view(),  name="api-infer"),
-    path("health/", HealthAPIView.as_view(), name="api-health"),
-    # path("train/",  TrainAPIView.as_view(),  name="api-train"),
+    path("predict/", api_views.ocr_predict, name="predict"),
 ]
+
