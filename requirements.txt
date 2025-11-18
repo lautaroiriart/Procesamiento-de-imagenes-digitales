@@ -1,0 +1,14 @@
+
+Django>=5.0
+numpy
+opencv-python
+pillow
+scikit-image
+matplotlib
+tensorflow
+djangorestframework
+pandas
+scikit-learn
+openpyxl
+pytesseract
+Pillow
