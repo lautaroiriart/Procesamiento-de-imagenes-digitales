@@ -1,174 +1,218 @@
-ALPR Mercosur – Proyecto Final
+# Trabajo Final – Sistema de Reconocimiento de Patentes Mercosur (ALPR)
 
-Este proyecto es el trabajo final de la materia Procesamiento Digital de Imágenes. La idea general fue armar un sistema completo que pueda reconocer patentes del formato Mercosur a partir de imágenes, usando dos enfoques distintos:
+Este proyecto corresponde al trabajo final de la materia Procesamiento Digital de Imágenes.  
+El objetivo fue desarrollar un sistema funcional para el reconocimiento automático de patentes del formato Mercosur mediante dos enfoques distintos:
 
-Un modelo de redes neuronales convolucionales entrenado por mí, utilizando un dataset propio.
+1. Un modelo de redes neuronales convolucionales (CNN), entrenado con un dataset propio.
+2. Un método de OCR tradicional (Tesseract), utilizado como punto de comparación.
 
-Un OCR tradicional (Tesseract) como método de comparación.
+El trabajo incluye un backend en Django, un pipeline de procesamiento de imágenes, un modelo entrenado específicamente y una interfaz web que permite probar el sistema de forma interactiva.
 
-Además, se desarrolló una interfaz web en Django que permite subir una imagen, ajustar algunos parámetros de preprocesamiento y ver los resultados de ambos métodos lado a lado.
+---
 
-Funcionalidad general
+## 1. Descripción general del sistema
 
-El flujo es el siguiente:
+El sistema permite cargar una imagen desde la interfaz web y ajustar parámetros simples de preprocesamiento (brillo y contraste).  
+Luego, la imagen es enviada a una API que ejecuta dos métodos de lectura independientes:
 
-El usuario sube una imagen de una patente desde la web.
+- el modelo propio entrenado,
+- y el OCR clásico.
 
-Se puede modificar brillo y contraste para mejorar la lectura.
+La respuesta incluye el texto detectado por cada método y un nivel de confianza. También se muestra una vista previa de la imagen procesada.
 
-La imagen se envía a una API que procesa todo.
+El objetivo no es obtener resultados perfectos, sino demostrar un flujo de trabajo completo combinando técnicas de procesamiento digital de imágenes y reconocimiento de caracteres.
 
-El backend ejecuta:
+---
 
-el modelo CNN entrenado,
+## 2. Arquitectura y estructura del proyecto
 
-el OCR clásico,
+La organización principal del proyecto es la siguiente:
 
-y devuelve los dos resultados (texto detectado + nivel de confianza).
+### 2.1 Directorios y roles
 
-En pantalla se muestran ambos resultados junto con una vista previa de la imagen.
+- **alpr/**  
+  Aplicación principal de Django. Incluye:
+  - vistas,
+  - templates HTML,
+  - API REST,
+  - integración con los modelos de OCR.
 
-Estructura del proyecto
+- **alpr/ml/**  
+  Contiene todo lo relacionado con el procesamiento de imágenes y OCR:
+  - preprocesamiento y normalización,
+  - carga del dataset,
+  - encoding y decodificación de caracteres,
+  - arquitectura de la CNN,
+  - funciones de inferencia (modelo propio + OCR clásico).
 
-A grandes rasgos:
+- **alpr/management/commands/train_ocr.py**  
+  Script para entrenar la red neuronal desde la línea de comandos.
 
-alpr/
-Contiene la app principal de Django. Ahí está todo lo relacionado a vistas, templates, API y el código del modelo.
+- **docs/**  
+  Directorio con el dataset utilizado para el entrenamiento:
+  - `docs/images/` → imágenes de patentes recortadas manualmente,
+  - `mapping_ocr_normal.xlsx` → archivo que relaciona cada imagen con la patente real.
 
-alpr/ml/
-Módulo donde está el preprocesamiento, carga del dataset, encoding de caracteres, arquitectura de la red y la lógica de inferencia.
+- **models/**  
+  Se genera automáticamente después del entrenamiento. Guarda los archivos `.h5` con los pesos del modelo.
 
-alpr/management/commands/train_ocr.py
-Script para entrenar el modelo desde la línea de comandos.
+- **media/**  
+  Directorio donde se guardan temporalmente las imágenes subidas desde la interfaz web.
 
-docs/
-Contiene el dataset usado para entrenar:
+---
 
-docs/images/ → imágenes reales de patentes
+## 3. Instalación del entorno
 
-mapping_ocr_normal.xlsx → archivo con el nombre de cada imagen y la patente correspondiente
+A continuación se detallan los pasos para que cualquier persona pueda ejecutar el proyecto correctamente.
 
-models/
-Se genera automáticamente cuando se entrena el modelo. Guarda el archivo .h5 con los pesos entrenados.
+### 3.1 Crear entorno virtual
 
-media/
-Directorio donde se guarda temporalmente la imagen que sube el usuario antes de procesarla.
-
-Instalación del entorno
-
-Crear el entorno virtual:
-
+```bash
 python -m venv .venv
+```
 
-
-Activarlo:
-
+### 3.2 Activar entorno virtual (Windows)
+```bash
 .\.venv\Scripts\activate
+```
 
-
-Instalar dependencias:
-
+### 3.3 Instalar dependencias
+```bash
 pip install -r requirements.txt
+```
 
+### 3.4 Instalar Tesseract OCR
 
-Instalar Tesseract OCR (fuera de Python).
-Descarga recomendada:
+Tesseract debe instalarse como aplicación del sistema (fuera del entorno Python).
+Se recomienda utilizar:
+
 https://github.com/UB-Mannheim/tesseract/wiki
 
-Una vez instalado, asegurarse de configurar correctamente la ruta en inference.py si es necesario.
+En caso de ser necesario, la ruta del ejecutable puede configurarse en:
 
-Aplicar migraciones:
+alpr/ml/inference.py
 
+### 3.5 Aplicar migraciones de Django
+```bash
 python manage.py migrate
+```
 
-Entrenamiento del modelo
+Con esto el entorno queda preparado para entrenar el modelo y ejecutar la aplicación.
 
-El dataset consiste en aproximadamente 850 imágenes de patentes recortadas manualmente y un archivo Excel que relaciona cada archivo con su patente real. Antes del entrenamiento, el sistema limpia las etiquetas (quita espacios, pasa a mayúsculas y deja solo caracteres válidos).
+## 4. Entrenamiento del modelo
+
+El dataset se encuentra en el directorio docs/ y está compuesto por aproximadamente 850 imágenes junto con un archivo Excel que vincula cada imagen con su etiqueta correspondiente.
+
+Antes del entrenamiento:
+
+- las imágenes se convierten a escala de grises,
+
+- se redimensionan,
+
+- y las etiquetas se limpian (mayúsculas, sin espacios, solo caracteres válidos).
 
 Para entrenar el modelo:
-
+```bash
 python manage.py train_ocr
+```
 
+Durante este proceso se aplican técnicas como early stopping y validación cruzada básica.
+Al finalizar, se guarda el modelo en:
+```bash
+models/plate_ocr_model.h5
+```
 
-Esto:
+## 5. Ejecución de la aplicación web
 
-carga el dataset,
-
-arma las etiquetas codificadas,
-
-entrena la red con early stopping,
-
-y guarda el modelo final en models/plate_ocr_model.h5.
-
-Ejecución
-
-Para iniciar el servidor:
-
+Una vez instalado el entorno y entrenado el modelo (o utilizando uno ya generado), se puede iniciar el servidor:
+```bash
 python manage.py runserver
+```
 
-
-La aplicación web se encuentra en:
+La interfaz web está disponible en:
 
 http://127.0.0.1:8000/alpr/upload/
 
+Desde la interfaz se puede:
 
-Desde ahí se puede subir una imagen y probar ambos métodos de lectura.
+- subir una imagen de patente,
 
-API utilizada internamente
+- ajustar brillo y contraste,
 
-El frontend se comunica con:
+- procesarla mediante los dos métodos de lectura (CNN y OCR clásico),
+
+- visualizar ambos resultados comparados,
+
+- ver la imagen preprocesada.
+
+## 6. API interna del sistema
+
+El frontend se comunica con el backend a través del endpoint:
 
 POST /alpr/api/predict/
 
+Parámetros:
 
-- En el body se envía:
+- image: archivo cargado por el usuario,
 
-  la imagen,
+- brightness: valor numérico para ajuste,
 
-  el brillo elegido,
+- contrast: valor numérico para ajuste.
 
-  el contraste elegido.
+```bash
+Respuesta:
+{
+  "custom_model": {
+    "plate_text": "ABC123",
+    "confidence": 0.87
+  },
+  "external_ocr": {
+    "plate_text": "ABC123",
+    "confidence": 0.92
+  }
+}
+```
 
-- La respuesta es un JSON con dos secciones:
+El endpoint también puede utilizarse para pruebas externas o integración con otros sistemas.
 
-  resultado del modelo propio,
+## 7. Consideraciones sobre el rendimiento
 
-  resultado del OCR clásico.
+El modelo propio fue entrenado con un dataset de tamaño reducido, lo que limita su capacidad de generalización, especialmente frente a imágenes con variaciones de iluminación, enfoque o estilos no presentes en el dataset original.
 
-Cada uno devuelve el texto detectado y un nivel de confianza.
+A pesar de estas limitaciones, el modelo cumple su función dentro del marco del trabajo práctico: demostrar una implementación completa del flujo de procesamiento de imágenes y reconocimiento óptico de caracteres.
 
-Sobre el rendimiento
+El OCR tradicional (Tesseract) ofrece un rendimiento más estable en imágenes limpias y bien contrastadas, pero también presenta dificultades en presencia de ruido o recortes imperfectos.
 
-El modelo propio no está entrenado con un dataset muy grande, por lo que su precisión es limitada, especialmente en imágenes nuevas o de estilos distintos. Aun así, sirve para demostrar la arquitectura completa (dataset → preprocesamiento → entrenamiento → inferencia → API → web).
+El valor principal del sistema radica en la integración de ambos enfoques y la posibilidad de compararlos de manera directa.
 
-Tesseract, por el contrario, funciona mejor en imágenes limpias y con buena iluminación, pero no necesariamente maneja bien casos más complicados.
+## 8. Posibles mejoras futuras
 
-El objetivo del proyecto no es obtener un sistema de lectura perfecto, sino mostrar e integrar ambas aproximaciones, entender sus diferencias y montar una solución funcional de punta a punta.
+Algunas líneas de mejora identificadas son:
 
-Posibles mejoras
+- Aumento del dataset y mayor diversidad de ejemplos.
 
-Algunas cosas que podrían incorporarse a futuro:
+- Aplicación de técnicas de data augmentation.
 
-Aumentar el dataset o aplicar técnicas de data augmentation.
+- Implementación de arquitecturas específicas para OCR (CRNN, LSTM, transformers).
 
-Implementar modelos más avanzados (CRNN, LSTM o transformers para secuencias).
+- Preprocesamiento más robusto (binarización adaptativa, detección automática del área del texto).
 
-Mejorar el recorte del área negra de la patente antes de procesarla.
+- Validaciones basadas en los formatos oficiales de patentes Mercosur.
 
-Aplicar reglas específicas de formato (por ejemplo LLLNNN, LLNNLL, etc.).
+- Evaluaciones cuantitativas detalladas del desempeño de ambos métodos.
 
-Comparar más métricas entre ambos métodos.
+## 9. Estado actual del proyecto
 
-Estado del proyecto
+El sistema está completamente operativo y permite:
 
-La aplicación funciona de punta a punta:
+- cargar imágenes desde la web,
 
-sube imágenes,
+- aplicar preprocesamiento,
 
-ajusta parámetros,
+- procesarlas con dos métodos diferentes,
 
-procesa con ambos métodos,
+- comparar resultados,
 
-muestra resultados comparativos,
+- y recorrer todo el pipeline implementado.
 
-y permite demostrar los distintos enfoques para OCR.
+El proyecto cumple los objetivos planteados y sirve como base para posibles mejoras o extensiones futuras.
