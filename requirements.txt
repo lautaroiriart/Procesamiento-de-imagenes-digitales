@@ -5,3 +5,13 @@ opencv-python
 pillow
 scikit-image
 matplotlib
+<<<<<<< HEAD
+=======
+tensorflow
+djangorestframework
+pandas
+scikit-learn
+openpyxl
+pytesseract
+Pillow
+>>>>>>> 76b396c (Arreglo de logica y comparativa con Tesseract)

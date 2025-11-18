@@ -1,233 +1,174 @@
-🚗 TFI 2025 – ALPR MERCOSUR (Django + PDI + CNN desde cero)
+ALPR Mercosur – Proyecto Final
 
-Proyecto final integrador: Reconocimiento Automático de Patentes (ALPR) para formato MERCOSUR.
-Pipeline mixto PDI clásico (OpenCV) + OCR con CNN entrenada desde cero (sin modelos preentrenados).
-Incluye demo web en Django, comando de entrenamiento sintético, y script para preparar dataset real de caracteres.
+Este proyecto es el trabajo final de la materia Procesamiento Digital de Imágenes. La idea general fue armar un sistema completo que pueda reconocer patentes del formato Mercosur a partir de imágenes, usando dos enfoques distintos:
 
-Diagrama del pipeline: docs/images/pipeline_diagram.png
-Muestra el flujo: Detección → Rectificación → Segmentación → OCR CNN → Postproceso → JSON.
+Un modelo de redes neuronales convolucionales entrenado por mí, utilizando un dataset propio.
 
-🗂️ Estructura del proyecto
-tfi_pdi_alpr/
-├─ manage.py
-├─ requirements.txt
-├─ .gitignore
-├─ tfi_pdi_alpr/                 # Settings/URLs/WSGI/ASGI
-│  ├─ settings.py                # OCR_WEIGHTS a models/ocr_cnn.pt
-│  └─ urls.py                    # /alpr/
-├─ alpr/                         # App principal
-│  ├─ urls.py                    # /alpr/upload/
-│  ├─ views.py                   # vista de demo (subir imagen → JSON)
-│  ├─ templates/alpr/upload.html # HTML “semi lindo” para demo
-│  ├─ ml/                        # 🔥 PDI + OCR
-│  │   ├─ detect.py              # Detección de placa (Canny, contornos, heurísticas)
-│  │   ├─ rectify.py             # Recorte + resize placa (256×64)
-│  │   ├─ segment.py             # Segmentación de caracteres → 32×32
-│  │   ├─ postprocess.py         # Correcciones O→0, I→1, regex de formato
-│  │   ├─ ocr_net.py             # SmallCNN (PyTorch) – 1 char 32×32 → clase
-│  │   ├─ ocr_model.py           # Loader de pesos (usa settings.OCR_WEIGHTS) + stub
-│  │   └─ inference.py           # Orquestador end-to-end (cachea el modelo)
-│  └─ management/commands/
-│      └─ train_ocr.py           # Entrena CNN con datos sintéticos
-├─ scripts/
-│  └─ prepare_chars.py           # Extrae chars 32×32 desde placas (dataset real)
-├─ data/                         # datasets (gitignored)
-│  ├─ raw/       # originales
-│  ├─ interim/   # intermedios (ej: plates/)
-│  └─ processed/ # chars/ + labels.csv para entrenamiento real
-├─ models/                       # ocr_cnn.pt (pesos entrenados, gitignored)
-└─ docs/images/pipeline_diagram.png
+Un OCR tradicional (Tesseract) como método de comparación.
 
-🧰 Requisitos
+Además, se desarrolló una interfaz web en Django que permite subir una imagen, ajustar algunos parámetros de preprocesamiento y ver los resultados de ambos métodos lado a lado.
 
-Python 3.12 (recomendado)
+Funcionalidad general
 
-En Windows, con Python 3.14 hay problemas de wheels de opencv-python/numpy.
-Bajá 3.12 x64: https://www.python.org/downloads/release/python-3120/
- (marcar Add Python to PATH).
+El flujo es el siguiente:
 
-Sistema operativo: Windows 10/11, Linux o macOS.
+El usuario sube una imagen de una patente desde la web.
 
-⚙️ Instalación (paso a paso)
+Se puede modificar brillo y contraste para mejorar la lectura.
 
-Todos los comandos se corren desde la carpeta del proyecto (donde está manage.py).
-Los comandos usan PowerShell (Windows) o bash (Linux/macOS).
+La imagen se envía a una API que procesa todo.
 
-1) Crear entorno virtual (Python 3.12)
+El backend ejecuta:
 
-Windows (PowerShell):
+el modelo CNN entrenado,
 
-py -3.12 -m venv .venv
+el OCR clásico,
+
+y devuelve los dos resultados (texto detectado + nivel de confianza).
+
+En pantalla se muestran ambos resultados junto con una vista previa de la imagen.
+
+Estructura del proyecto
+
+A grandes rasgos:
+
+alpr/
+Contiene la app principal de Django. Ahí está todo lo relacionado a vistas, templates, API y el código del modelo.
+
+alpr/ml/
+Módulo donde está el preprocesamiento, carga del dataset, encoding de caracteres, arquitectura de la red y la lógica de inferencia.
+
+alpr/management/commands/train_ocr.py
+Script para entrenar el modelo desde la línea de comandos.
+
+docs/
+Contiene el dataset usado para entrenar:
+
+docs/images/ → imágenes reales de patentes
+
+mapping_ocr_normal.xlsx → archivo con el nombre de cada imagen y la patente correspondiente
+
+models/
+Se genera automáticamente cuando se entrena el modelo. Guarda el archivo .h5 con los pesos entrenados.
+
+media/
+Directorio donde se guarda temporalmente la imagen que sube el usuario antes de procesarla.
+
+Instalación del entorno
+
+Crear el entorno virtual:
+
+python -m venv .venv
+
+
+Activarlo:
+
 .\.venv\Scripts\activate
-python -V    # debe decir 3.12.x
 
 
-Linux/macOS:
+Instalar dependencias:
 
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -V
-
-2) Instalar dependencias del proyecto
-python -m pip install -U pip setuptools wheel
-python -m pip install Django "numpy<2.3" opencv-python pillow scikit-image matplotlib
+pip install -r requirements.txt
 
 
-Si opencv-python te falla, probá la variante sin GUI:
+Instalar Tesseract OCR (fuera de Python).
+Descarga recomendada:
+https://github.com/UB-Mannheim/tesseract/wiki
 
-python -m pip install opencv-python-headless
+Una vez instalado, asegurarse de configurar correctamente la ruta en inference.py si es necesario.
 
-3) Instalar PyTorch (CPU)
-python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+Aplicar migraciones:
 
-
-Si querés GPU (CUDA), ver opciones en: https://pytorch.org/get-started/locally/
-
-▶️ Ejecutar la app web
 python manage.py migrate
+
+Entrenamiento del modelo
+
+El dataset consiste en aproximadamente 850 imágenes de patentes recortadas manualmente y un archivo Excel que relaciona cada archivo con su patente real. Antes del entrenamiento, el sistema limpia las etiquetas (quita espacios, pasa a mayúsculas y deja solo caracteres válidos).
+
+Para entrenar el modelo:
+
+python manage.py train_ocr
+
+
+Esto:
+
+carga el dataset,
+
+arma las etiquetas codificadas,
+
+entrena la red con early stopping,
+
+y guarda el modelo final en models/plate_ocr_model.h5.
+
+Ejecución
+
+Para iniciar el servidor:
+
 python manage.py runserver
 
 
-Abrí el navegador: http://127.0.0.1:8000/alpr/upload/
+La aplicación web se encuentra en:
 
-Subí una imagen y vas a ver un JSON con:
-
-plate_text: texto estimado (o stub si no hay modelo entrenado)
-
-per_char_conf: confianzas por carácter
-
-bbox: bounding box de la placa en la imagen original
-
-🧠 Cómo funciona el modelo (resumen para explicar)
-
-Detección (OpenCV): gris → suavizado → Canny → contornos → heurística de ratio (ancho/alto) → bbox.
-
-Rectificación: recorte de bbox y resize a 256×64.
-
-Segmentación: binarización adaptativa, componentes conectados, filtros por tamaño/ratio, orden izquierda→derecha, resize a 32×32 por carácter.
-
-OCR CNN (SmallCNN): 3 conv + maxpool + dropout + 2 FC → 36 clases (0–9, A–Z).
-
-Postproceso: reemplazos comunes (O→0, I→1, B→8) y regex de formatos MERCOSUR.
-
-Importante: si no existe models/ocr_cnn.pt, el loader cae a un stub que devuelve "X" con confianza 0.5 para sostener la demo.
-
-🏋️ Entrenamiento del OCR (datos sintéticos)
-
-Sirve como bootstrap para que la CNN aprenda formas básicas de caracteres y la demo funcione sin necesitar fotos reales.
-
-python manage.py train_ocr --epochs 5 --train-samples 8000 --val-samples 1000
+http://127.0.0.1:8000/alpr/upload/
 
 
-Genera caracteres con PIL (A–Z, 0–9) + ruido/blur/rotación (data augmentation simple).
+Desde ahí se puede subir una imagen y probar ambos métodos de lectura.
 
-Entrena SmallCNN desde cero con Adam.
+API utilizada internamente
 
-Guarda el mejor checkpoint en models/ocr_cnn.pt.
+El frontend se comunica con:
 
-La inferencia lo toma automático (ruta configurada en settings.py como OCR_WEIGHTS).
-
-🧪 Preparar dataset real de caracteres (cuando tengas placas)
-
-Colocá placas recortadas en:
-
-data/interim/plates/
-  ├─ placa_001.jpg
-  ├─ placa_002.png
-  └─ ...
+POST /alpr/api/predict/
 
 
-(Opcional) Ground-truth por imagen:
+- En el body se envía:
 
-data/interim/plates.csv
-filename,plate_text
-placa_001.jpg,ABC1D23
-placa_002.png,AB123CD
+  la imagen,
 
+  el brillo elegido,
 
-Ejecutar el script:
+  el contraste elegido.
 
-python scripts/prepare_chars.py \
-  --plates-dir data/interim/plates \
-  --out-dir data/processed/chars \
-  --labels-csv data/interim/plates.csv \
-  --visual-check
+- La respuesta es un JSON con dos secciones:
 
+  resultado del modelo propio,
 
-Qué genera:
+  resultado del OCR clásico.
 
-data/processed/chars/{A..Z,0..9}/*.png (32×32 etiquetados)
+Cada uno devuelve el texto detectado y un nivel de confianza.
 
-data/processed/chars/_unlabeled/*.png (si no hubo GT o no coincide el largo)
+Sobre el rendimiento
 
-data/processed/chars/labels.csv y labels_unlabeled.csv
+El modelo propio no está entrenado con un dataset muy grande, por lo que su precisión es limitada, especialmente en imágenes nuevas o de estilos distintos. Aun así, sirve para demostrar la arquitectura completa (dataset → preprocesamiento → entrenamiento → inferencia → API → web).
 
-data/processed/chars/_mosaics/*.png (tiras visuales para revisar segmentación)
+Tesseract, por el contrario, funciona mejor en imágenes limpias y con buena iluminación, pero no necesariamente maneja bien casos más complicados.
 
-Siguiente paso: adaptar el comando de entrenamiento para leer labels.csv (misma arquitectura).
-(Lo podemos agregar como train_ocr_real.py si lo necesitan.)
+El objetivo del proyecto no es obtener un sistema de lectura perfecto, sino mostrar e integrar ambas aproximaciones, entender sus diferencias y montar una solución funcional de punta a punta.
 
-🧩 Variables importantes
+Posibles mejoras
 
-Ruta de pesos del OCR: en tfi_pdi_alpr/settings.py
+Algunas cosas que podrían incorporarse a futuro:
 
-OCR_WEIGHTS = str(BASE_DIR / "models" / "ocr_cnn.pt")
+Aumentar el dataset o aplicar técnicas de data augmentation.
 
+Implementar modelos más avanzados (CRNN, LSTM o transformers para secuencias).
 
-Cambiá esta ruta si querés cargar otros pesos.
+Mejorar el recorte del área negra de la patente antes de procesarla.
 
-🧯 Troubleshooting (Windows)
+Aplicar reglas específicas de formato (por ejemplo LLLNNN, LLNNLL, etc.).
 
-Error: ModuleNotFoundError: No module named 'cv2'
-👉 Solución: python -m pip install opencv-python (o opencv-python-headless).
+Comparar más métricas entre ambos métodos.
 
-Error instalando opencv/numpy en Python 3.14:
-👉 Usar Python 3.12. Crear venv nuevo:
+Estado del proyecto
 
-# PowerShell
-deactivate
-Remove-Item -Recurse -Force .venv
-py -3.12 -m venv .venv
-.\.venv\Scripts\activate
-python -m pip install -U pip setuptools wheel
-python -m pip install Django "numpy<2.3" opencv-python pillow scikit-image matplotlib
+La aplicación funciona de punta a punta:
 
+sube imágenes,
 
-pip no anda
-👉 Usá python -m pip install <paquete> (dentro del venv).
+ajusta parámetros,
 
-Verificar versiones:
+procesa con ambos métodos,
 
-python -c "import cv2, numpy, torch; print(cv2.__version__, numpy.__version__, torch.__version__)"
+muestra resultados comparativos,
 
-
-PowerShell vs CMD
-
-Borrar .venv en PowerShell:
-
-Remove-Item -Recurse -Force .venv
-
-
-(No usar rmdir /S /Q .venv en PowerShell, es de CMD.)
-
-
-🧑‍💻 Comandos útiles (copiar y pegar)
-# 1) Crear venv (3.12) + activar
-py -3.12 -m venv .venv
-.\.venv\Scripts\activate
-
-# 2) Instalar proyecto + OpenCV + Torch (CPU)
-python -m pip install -U pip setuptools wheel
-python -m pip install Django "numpy<2.3" opencv-python pillow scikit-image matplotlib
-python -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-
-# 3) Migrar + correr
-python manage.py migrate
-python manage.py runserver
-# http://127.0.0.1:8000/alpr/upload/
-
-# 4) Entrenar OCR (sintético)
-python manage.py train_ocr --epochs 5 --train-samples 8000 --val-samples 1000
-
-# 5) Preparar dataset real de caracteres 
-python scripts/prepare_chars.py --plates-dir data/interim/plates --out-dir data/processed/chars --labels-csv data/interim/plates.csv --visual-check
+y permite demostrar los distintos enfoques para OCR.
