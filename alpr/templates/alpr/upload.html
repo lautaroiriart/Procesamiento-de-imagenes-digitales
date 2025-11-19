@@ -121,27 +121,34 @@
 <div class="container">
 
   <!-- Encabezado institucional -->
-  <p class="muted" style="margin-bottom:4px;font-size:14px;">
-    Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18
-  </p>
-  <p class="muted" style="margin-top:0;margin-bottom:12px;font-size:14px;">
-    Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)
-  </p>
+    <div style="margin-bottom:20px;">
+        <p class="muted" style="margin:0; font-size:13px;">
+            Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18
+        </p>
+        <p class="muted" style="margin:4px 0 0; font-size:13px;">
+            Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)
+        </p>
+    </div>
 
-  <h1>
-    ALPR MERCOSUR – Reconocimiento Automático de Patentes
-    <span class="badge">Demo TFI 2025</span>
-  </h1>
+    <!-- TÍTULO PRINCIPAL -->
+    <h1 style="margin:0 0 6px; font-size:32px; font-weight:700;">
+        ALPR MERCOSUR – Reconocimiento Automático de Patentes
+        <span class="badge">Demo TFI 2025</span>
+    </h1>
 
-  <p class="muted" style="font-size:14px;margin-bottom:12px;">
-    Integrantes: Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
-  </p>
+    <!-- BLOQUE DE INTEGRANTES -->
+    <div style="margin:12px 0 20px;">
+        <p class="muted" style="font-size:14px; margin:0;">
+            <strong>Integrantes:</strong> Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
+        </p>
+    </div>
 
-  <p class="muted">
-    Subí una imagen de una patente del MERCOSUR. Podés ajustar el brillo y contraste, y
-    luego el sistema procesa la imagen con el modelo CNN desarrollado para el TFI y con Tesseract, finalmente
-    muestra ambos resultados para comparación.
-  </p>
+    <!-- DESCRIPCIÓN BREVE -->
+    <p class="muted" style="font-size:15px; margin-bottom:24px; line-height:1.5;">
+        Subí una imagen de una patente del MERCOSUR. Ajustá el brillo y contraste si es necesario.
+        Luego el sistema procesará la imagen con el modelo CNN desarrollado para el TFI y con Tesseract,
+        mostrando ambos resultados para comparación.
+    </p>
 
   <!-- FORM AJAX -->
   <form class="card" id="ocr-form" enctype="multipart/form-data">
