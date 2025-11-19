@@ -21,8 +21,72 @@
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,.3);
     }
-    h1 { margin: 0 0 8px; font-size: 28px }
+
+    /* HEADER ACADÉMICO */
+    .page-header {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      margin-bottom: 20px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid #1f2937;
+    }
+    .plate-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #1d4ed8, #7c3aed);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 14px;
+      letter-spacing: .06em;
+      color: #f9fafb;
+      flex-shrink: 0;
+      box-shadow: 0 6px 16px rgba(15,23,42,.5);
+    }
+    .header-text small {
+      display: block;
+      color: #94a3b8;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .header-text strong {
+      font-size: 13px;
+      color: #cbd5f5;
+    }
+
+    /* TÍTULO + BADGE */
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 6px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .subtitle {
+      margin: 0 0 18px;
+      color: #cbd5f5;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: #1d4ed8;
+      color: #e2e8f0;
+      font-size: 12px;
+    }
+
     p.muted { color: #94a3b8; margin: 0 0 20px }
+
     .card {
       display: flex;
       gap: 16px;
@@ -51,6 +115,7 @@
       cursor: pointer;
     }
     button:hover { filter: brightness(1.05) }
+
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -65,15 +130,6 @@
       border-radius: 10px;
       max-height: 400px;
       overflow: auto;
-    }
-    .badge {
-      display: inline-block;
-      padding: 6px 10px;
-      border-radius: 999px;
-      background: #1d4ed8;
-      color: #e2e8f0;
-      font-size: 12px;
-      margin-left: 8px;
     }
     hr {
       border: none;
@@ -120,41 +176,32 @@
 <body>
 <div class="container">
 
-  <!-- BLOQUE INSTITUCIONAL -->
-  <div style="margin-bottom:20px;">
-      <p class="muted" style="margin:0; font-size:13px;">
-          Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18
-      </p>
-      <p class="muted" style="margin:4px 0 0; font-size:13px;">
-          Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)
-      </p>
+  <!-- HEADER ACADÉMICO CON ICONO -->
+  <div class="page-header">
+    <div class="plate-icon">AL</div>
+    <div class="header-text">
+      <small>Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18</small>
+      <strong>Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)</strong>
+    </div>
   </div>
 
-  <!-- TÍTULO PRINCIPAL -->
-  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
-      <h1 style="margin:0; font-size:32px; font-weight:700; white-space:nowrap;">
-          ALPR MERCOSUR
-      </h1>
-      <span class="badge">Demo TFI 2025</span>
+  <!-- TÍTULO + BADGE -->
+  <div class="title-row">
+    <h1>ALPR MERCOSUR</h1>
+    <span class="badge">Demo TFI 2025</span>
   </div>
+  <p class="subtitle">Reconocimiento Automático de Patentes</p>
 
-  <!-- SUBTÍTULO DESCRIPTIVO -->
-  <p class="muted" style="font-size:18px; margin:6px 0 20px; font-weight:500;">
-      Reconocimiento Automático de Patentes
+  <!-- INTEGRANTES -->
+  <p class="muted" style="font-size:14px; margin-top:0; margin-bottom:16px;">
+    <strong>Integrantes:</strong> Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
   </p>
 
-  <!-- BLOQUE DE INTEGRANTES -->
-  <div style="margin:0 0 20px;">
-      <p class="muted" style="font-size:14px; margin:0;">
-          <strong>Integrantes:</strong> Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
-      </p>
-  </div>
-
-  <!-- DESCRIPCIÓN BREVE -->
+  <!-- DESCRIPCIÓN -->
   <p class="muted" style="font-size:15px; margin-bottom:24px; line-height:1.5;">
-      Subí una imagen de una patente del MERCOSUR. Ajustá el brillo y el contraste si es necesario.
-      Luego el sistema procesará la imagen con el modelo CNN desarrollado para el TFI y con Tesseract,
-      mostrando ambos resultados para comparación.
+    Subí una imagen de una patente del MERCOSUR. Ajustá el brillo y el contraste si es necesario.
+    Luego el sistema procesará la imagen con el modelo CNN desarrollado para el TFI y con Tesseract,
+    mostrando ambos resultados para comparación.
   </p>
 
   <!-- FORM AJAX -->
@@ -256,7 +303,6 @@ document.getElementById("ocr-form").addEventListener("submit", async (e) => {
 
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
-    // URL de la API (usa el nombre de la ruta: alpr_api:predict)
     const endpoint = "/alpr/api/predict/";
     let resp;
     try {
