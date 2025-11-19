@@ -120,35 +120,42 @@
 <body>
 <div class="container">
 
-  <!-- Encabezado institucional -->
-    <div style="margin-bottom:20px;">
-        <p class="muted" style="margin:0; font-size:13px;">
-            Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18
-        </p>
-        <p class="muted" style="margin:4px 0 0; font-size:13px;">
-            Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)
-        </p>
-    </div>
+  <!-- BLOQUE INSTITUCIONAL -->
+  <div style="margin-bottom:20px;">
+      <p class="muted" style="margin:0; font-size:13px;">
+          Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18
+      </p>
+      <p class="muted" style="margin:4px 0 0; font-size:13px;">
+          Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)
+      </p>
+  </div>
 
-    <!-- TÍTULO PRINCIPAL -->
-    <h1 style="margin:0 0 6px; font-size:32px; font-weight:700;">
-        ALPR MERCOSUR – Reconocimiento Automático de Patentes
-        <span class="badge">Demo TFI 2025</span>
-    </h1>
+  <!-- TÍTULO PRINCIPAL -->
+  <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+      <h1 style="margin:0; font-size:32px; font-weight:700; white-space:nowrap;">
+          ALPR MERCOSUR
+      </h1>
+      <span class="badge">Demo TFI 2025</span>
+  </div>
 
-    <!-- BLOQUE DE INTEGRANTES -->
-    <div style="margin:12px 0 20px;">
-        <p class="muted" style="font-size:14px; margin:0;">
-            <strong>Integrantes:</strong> Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
-        </p>
-    </div>
+  <!-- SUBTÍTULO DESCRIPTIVO -->
+  <p class="muted" style="font-size:18px; margin:6px 0 20px; font-weight:500;">
+      Reconocimiento Automático de Patentes
+  </p>
 
-    <!-- DESCRIPCIÓN BREVE -->
-    <p class="muted" style="font-size:15px; margin-bottom:24px; line-height:1.5;">
-        Subí una imagen de una patente del MERCOSUR. Ajustá el brillo y contraste si es necesario.
-        Luego el sistema procesará la imagen con el modelo CNN desarrollado para el TFI y con Tesseract,
-        mostrando ambos resultados para comparación.
-    </p>
+  <!-- BLOQUE DE INTEGRANTES -->
+  <div style="margin:0 0 20px;">
+      <p class="muted" style="font-size:14px; margin:0;">
+          <strong>Integrantes:</strong> Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
+      </p>
+  </div>
+
+  <!-- DESCRIPCIÓN BREVE -->
+  <p class="muted" style="font-size:15px; margin-bottom:24px; line-height:1.5;">
+      Subí una imagen de una patente del MERCOSUR. Ajustá el brillo y el contraste si es necesario.
+      Luego el sistema procesará la imagen con el modelo CNN desarrollado para el TFI y con Tesseract,
+      mostrando ambos resultados para comparación.
+  </p>
 
   <!-- FORM AJAX -->
   <form class="card" id="ocr-form" enctype="multipart/form-data">
