@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>ALPR MERCOSUR – Demo</title>
+  <title>ALPR MERCOSUR – Reconocimiento Automático de Patentes</title>
   <style>
     * { box-sizing: border-box }
     body {
@@ -21,7 +21,7 @@
       border-radius: 16px;
       box-shadow: 0 10px 30px rgba(0,0,0,.3);
     }
-    h1 { margin: 0 0 12px; font-size: 28px }
+    h1 { margin: 0 0 8px; font-size: 28px }
     p.muted { color: #94a3b8; margin: 0 0 20px }
     .card {
       display: flex;
@@ -45,12 +45,12 @@
       padding: 10px 16px;
       border: none;
       border-radius: 10px;
-      background: #22c55e;
-      color: #0b1220;
+      background: #3b82f6;
+      color: #f9fafb;
       font-weight: 700;
       cursor: pointer;
     }
-    button:hover { filter: brightness(1.1) }
+    button:hover { filter: brightness(1.05) }
     .grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -108,15 +108,39 @@
       text-align: center;
       color: #94a3b8;
     }
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      color: #64748b;
+      font-size: 13px;
+    }
   </style>
 </head>
 
 <body>
 <div class="container">
-  <h1>ALPR MERCOSUR – Demo <span class="badge">TFI 2025</span></h1>
+
+  <!-- Encabezado institucional -->
+  <p class="muted" style="margin-bottom:4px;font-size:14px;">
+    Tecnicatura Superior en Ciencia de Datos e Inteligencia Artificial – IFTS Nº 18
+  </p>
+  <p class="muted" style="margin-top:0;margin-bottom:12px;font-size:14px;">
+    Trabajo Final Integrador – Reconocimiento Automático de Patentes (ALPR)
+  </p>
+
+  <h1>
+    ALPR MERCOSUR – Reconocimiento Automático de Patentes
+    <span class="badge">Demo TFI 2025</span>
+  </h1>
+
+  <p class="muted" style="font-size:14px;margin-bottom:12px;">
+    Integrantes: Alvarez Andrea, Diaz Caro Antonella, Iriart y Alvo Lautaro, Sierra Lorena.
+  </p>
+
   <p class="muted">
-    Subí una imagen de una patente. El sistema aplica los ajustes de brillo/contraste,
-    ejecuta tu modelo CNN y también Tesseract, y muestra la comparación.
+    Subí una imagen de una patente del MERCOSUR. Podés ajustar el brillo y contraste, y
+    luego el sistema procesa la imagen con el modelo CNN desarrollado para el TFI y con Tesseract, finalmente
+    muestra ambos resultados para comparación.
   </p>
 
   <!-- FORM AJAX -->
@@ -128,6 +152,8 @@
 
   <!-- SLIDERS -->
   <div class="card" style="flex-direction:column;align-items:flex-start;">
+      <h3 style="margin:0 0 8px;">Ajustes de imagen</h3>
+
       <label>Brillo</label>
       <div class="slider-row">
           <input type="range" id="brightness" name="brightness" min="-50" max="50" value="0">
@@ -154,10 +180,16 @@
   </div>
 
   <hr/>
-  <p class="muted">
-    El front usa AJAX para enviar la imagen y los sliders al backend.
-    El backend procesa la imagen con tu CNN y con Tesseract para poder comparar.
+  <p class="muted" style="font-size:13px;">
+    El frontend utiliza AJAX para enviar la imagen y los parámetros de brillo/contraste
+    al backend Django. El backend realiza el preprocesamiento, ejecuta el modelo CNN
+    entrenado para patentes del MERCOSUR y un OCR clásico (Tesseract), y devuelve los
+    resultados para su comparación.
   </p>
+
+  <footer>
+    Proyecto académico – IFTS Nº 18 · 2025
+  </footer>
 </div>
 
 <script>
@@ -211,7 +243,7 @@ document.getElementById("ocr-form").addEventListener("submit", async (e) => {
     const csrfToken = document.querySelector("[name=csrfmiddlewaretoken]").value;
 
     // URL de la API (usa el nombre de la ruta: alpr_api:predict)
-  const endpoint = "/alpr/api/predict/";
+    const endpoint = "/alpr/api/predict/";
     let resp;
     try {
         resp = await fetch(endpoint, {
