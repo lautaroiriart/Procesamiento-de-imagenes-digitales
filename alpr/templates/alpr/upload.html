@@ -170,6 +170,18 @@
       color: #64748b;
       font-size: 13px;
     }
+    .two-col {
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: flex-start;
+    }
+    .result-block {
+      margin-top: 16px;
+      background: #0b1220;
+      border: 1px solid #1f2937;
+      border-radius: 12px;
+      padding: 16px;
+    }
   </style>
 </head>
 
@@ -211,34 +223,35 @@
     <button type="submit">Procesar</button>
   </form>
 
-  <!-- SLIDERS -->
-  <div class="card" style="flex-direction:column;align-items:flex-start;">
-      <h3 style="margin:0 0 8px;">Ajustes de imagen</h3>
+  <!-- AJUSTES + VISTA PREVIA LADO A LADO -->
+    <div class="card two-col">
+      <div>
+        <h3 style="margin:0 0 8px;">Ajustes de imagen</h3>
 
-      <label>Brillo</label>
-      <div class="slider-row">
-          <input type="range" id="brightness" name="brightness" min="-50" max="50" value="0">
-          <span id="brightness-value">0</span>
+        <label>Brillo</label>
+        <div class="slider-row">
+            <input type="range" id="brightness" name="brightness" min="-50" max="50" value="0">
+            <span id="brightness-value">0</span>
+        </div>
+
+        <label style="margin-top:10px;">Contraste</label>
+        <div class="slider-row">
+            <input type="range" id="contrast" name="contrast" min="-50" max="50" value="0">
+            <span id="contrast-value">0</span>
+        </div>
       </div>
 
-      <label style="margin-top:10px;">Contraste</label>
-      <div class="slider-row">
-          <input type="range" id="contrast" name="contrast" min="-50" max="50" value="0">
-          <span id="contrast-value">0</span>
+      <div>
+        <h3 style="margin:0 0 8px;">Vista previa</h3>
+        <div class="preview"><img id="img" alt="preview"/></div>
       </div>
-  </div>
+    </div>
 
-  <div class="grid">
-    <div>
-      <h3>Resultado</h3>
+    <!-- RESULTADO ABAJO A LO ANCHO -->
+    <div class="result-block">
+      <h3 style="margin:0 0 8px;">Resultado</h3>
       <pre id="out">Esperando imagen...</pre>
     </div>
-
-    <div>
-      <h3>Vista previa</h3>
-      <div class="preview"><img id="img" alt="preview"/></div>
-    </div>
-  </div>
 
   <hr/>
   <p class="muted" style="font-size:13px;">
