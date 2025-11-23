@@ -1,16 +1,16 @@
 # alpr/ml/dataset.py
-from pathlib import Path
 
+from pathlib import Path
 import cv2
 import numpy as np
 import pandas as pd
 from django.conf import settings
 
-# Tamaño al que redimensionamos las imágenes de patentes
+# Dimensiones a las que se reescala cada imagen de patente
 IMG_HEIGHT = 64
 IMG_WIDTH = 256
 
-# Rutas base de docs e imágenes
+# Rutas base del dataset
 DOCS_DIR = Path(settings.BASE_DIR) / "docs"
 IMAGES_DIR = DOCS_DIR / "images"
 MAPPING_PATH = DOCS_DIR / "mapping_ocr_normal.xlsx"
@@ -19,62 +19,65 @@ MAPPING_PATH = DOCS_DIR / "mapping_ocr_normal.xlsx"
 def load_plate_dataset(
     mapping_path: Path = MAPPING_PATH,
     images_dir: Path = IMAGES_DIR,
-    filename_col: str = "nuevo_nombre",
-    plate_col: str = "patente",
+    filename_column: str = "nuevo_nombre",
+    plate_column: str = "patente",
 ):
     """
-    Carga el dataset de patentes a partir del Excel de mapeo y las imágenes.
+    Carga el dataset de patentes usando un archivo Excel que mapea
+    nombres de imágenes con sus etiquetas (texto de patente).
 
-    mapping_ocr_normal.xlsx debe tener, al menos, las columnas:
-        - nuevo_nombre : nombre del archivo de imagen (ej: '1.jpg')
-        - PATENTE      : texto de la patente (ej: 'AE 451 UX')
-
-    Devuelve:
-        X: np.ndarray con shape (N, IMG_HEIGHT, IMG_WIDTH, 1)
-        texts: lista de strings con las patentes.
+    Retorna:
+        images_array: np.ndarray con shape (N, IMG_HEIGHT, IMG_WIDTH, 1)
+        plate_texts: lista de strings con cada patente en formato limpio.
     """
 
-    df = pd.read_excel(mapping_path)
+    mapping_df = pd.read_excel(mapping_path)
 
-    if filename_col not in df.columns or plate_col not in df.columns:
+    if filename_column not in mapping_df.columns or plate_column not in mapping_df.columns:
+        available = list(mapping_df.columns)
         raise KeyError(
-            f"No se encontraron las columnas requeridas '{filename_col}' y/o "
-            f"'{plate_col}' en {mapping_path}. "
-            f"Columnas disponibles: {list(df.columns)}"
+            f"Columnas requeridas '{filename_column}' y/o '{plate_column}' no encontradas.\n"
+            f"Columnas disponibles: {available}"
         )
 
     images = []
-    texts = []
+    plate_texts = []
 
-    for _, row in df.iterrows():
-        filename = str(row[filename_col]).strip()
-        if not filename:
+    for _, row in mapping_df.iterrows():
+        image_name = str(row[filename_column]).strip()
+        if not image_name:
             continue
 
-        # Patente: sacamos espacios y pasamos a mayúsculas
-        plate_text = str(row[plate_col]).upper().replace(" ", "")
-        if not plate_text:
+        text_raw = str(row[plate_column]).strip()
+        if not text_raw:
             continue
 
-        img_path = images_dir / filename
-        if not img_path.exists():
-            print(f"[WARN] Imagen no encontrada: {img_path}")
+        # Normalizar formato de patente
+        plate_text = text_raw.upper().replace(" ", "")
+
+        image_path = images_dir / image_name
+        if not image_path.exists():
+            print(f"[WARN] Imagen no encontrada: {image_path}")
             continue
 
-        img = cv2.imread(str(img_path), cv2.IMREAD_GRAYSCALE)
-        if img is None:
-            print(f"[WARN] Error al leer imagen: {img_path}")
+        image = cv2.imread(str(image_path), cv2.IMREAD_GRAYSCALE)
+        if image is None:
+            print(f"[WARN] Fallo al leer imagen: {image_path}")
             continue
 
-        img = cv2.resize(img, (IMG_WIDTH, IMG_HEIGHT))
-        img = img.astype("float32") / 255.0
+        # Preprocesamiento básico (tamaño + normalización)
+        image = cv2.resize(image, (IMG_WIDTH, IMG_HEIGHT))
+        image = image.astype("float32") / 255.0
 
-        images.append(img)
-        texts.append(plate_text)
+        images.append(image)
+        plate_texts.append(plate_text)
 
     if not images:
-        raise RuntimeError("No se pudo cargar ninguna imagen para el dataset de OCR.")
+        raise RuntimeError(
+            "No se cargó ninguna imagen. Verificar estructura del dataset y rutas."
+        )
 
-    X = np.array(images)[..., np.newaxis]
-    print(f"[INFO] Dataset cargado: {len(texts)} imágenes.")
-    return X, texts
+    images_array = np.array(images)[..., np.newaxis]
+    print(f"[INFO] Dataset cargado correctamente: {len(plate_texts)} imágenes.")
+
+    return images_array, plate_texts
